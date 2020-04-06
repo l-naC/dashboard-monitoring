@@ -5,6 +5,8 @@ import firebase from 'firebase'
 
 Vue.config.productionTip = false;
 
+let app = '';
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAsX6P5238gt7b_pP-IxMu7AmC0cXoIcrw",
@@ -20,7 +22,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-new Vue({
-  router,
-  render: h => h(App)
-}).$mount('#app')
+firebase.auth().onAuthStateChanged(function() {
+  if (!app) {
+    app = new Vue({
+      router,
+      render: h => h(App)
+    }).$mount('#app')
+  }
+});
