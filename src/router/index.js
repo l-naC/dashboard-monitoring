@@ -4,6 +4,9 @@ import firebase from 'firebase'
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import SignUp from '../views/SignUp.vue'
+import Clients from '../views/Clients.vue'
+import Projects from '../views/Projects.vue'
+import Profil from '../views/Profil.vue'
 
 
 Vue.use(VueRouter)
@@ -32,6 +35,24 @@ Vue.use(VueRouter)
     path: '/sign-up',
     name: 'SignUp',
     component: SignUp
+  },
+  {
+    path: '/clients',
+    name: 'Clients',
+    component: Clients,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/projects',
+    name: 'Projects',
+    component: Projects,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profil',
+    name: 'Profil',
+    component: Profil,
+    meta: { requiresAuth: true }
   },
 ]
 
