@@ -1,10 +1,8 @@
 <template>
-  <div class="home">
     <Navigation>
         <div class="container">
         </div>
     </Navigation>
-  </div>
 </template>
 
 <script>

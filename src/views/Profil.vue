@@ -1,11 +1,9 @@
 <template>
-  <div class="home">
     <Navigation>
         <div class="container">
             <v-btn color="primary" @click="logout">Logout</v-btn>
         </div>
     </Navigation>
-  </div>
 </template>
 
 <script>
