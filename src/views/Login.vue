@@ -11,7 +11,7 @@
               </v-toolbar>
               <v-card-text>
                 <v-form>
-                  <v-text-field label="Login" name="login" type="text" v-model="email" placeholder="Email"/>
+                  <v-text-field label="email" name="email" type="text" v-model="email" placeholder="Email"/>
                   <v-text-field id="password" label="Password" name="password" type="password" v-model="password" placeholder="Password"/>
                 </v-form>
               </v-card-text>
