@@ -16,14 +16,21 @@
                     <thead>
                         <tr>
                         <th class="text-left">Name</th>
+                        <th class="text-left">Email</th>
+                        <th class="text-left">Phone number</th>
+                        <th class="text-left">Adress</th>
                         <th class="text-left"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in tablo" :key="item.name">
+                        <tr v-for="(item, i) in tablo" :key="i" :lat-lng="item">
                             <td class="text-left">{{ item.name }}</td>
+                            <td class="text-left">{{ item.email }}</td>
+                            <td class="text-left">{{ item.phoneNumber }}</td>
+                            <td class="text-left">{{ item.adress }}</td>
                             <td class="text-left">
-                                <v-btn class="mr-4" @click="dialogEdit = !dialogEdit">Edit</v-btn>
+                                <v-btn class="ma-4" @click="editClient(item, item.id)">Edit</v-btn>
+                                <v-btn class="ma-4" @click="() => deleteClient(item.id)">Delete</v-btn>
                             </td>
                         </tr>
                     </tbody>
@@ -32,7 +39,7 @@
             <v-dialog v-model="dialog" width="800px">
                 <v-card>
                     <v-card-title class="primary">
-                    Create project
+                    Create client
                     </v-card-title>
                     <v-container>
                         <v-form ref="form" v-model="valid">
@@ -54,12 +61,11 @@
             <v-dialog v-model="dialogEdit" width="800px">
                 <v-card>
                     <v-card-title class="primary">
-                    Create project
+                    Edit client
                     </v-card-title>
                     <v-container>
                         <v-form ref="form" v-model="valid">
-
-                            <v-text-field v-model="name" :counter="10" :rules="nameRules" label="Name" value="" required></v-text-field>
+                            <v-text-field v-model="name" :counter="10" :rules="nameRules" label="Name" required></v-text-field>
 
                             <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
 
@@ -80,6 +86,7 @@
 <script>
 import Navigation from '@/components/Navigation.vue'
 import firebase from 'firebase';
+      
 
 export default {
   name: 'Clients',
@@ -92,6 +99,7 @@ export default {
         valid: true,
         tablo: [],
         name: '',
+        id: '',
         nameRules: [
             v => !!v || 'Name is required',
             v => (v && v.length <= 10) || 'Name must be less than 10 characters',
@@ -124,7 +132,7 @@ export default {
             if (error) {
               alert('Oops. ' + error.message)
             } else {
-              this.$router.replace('clients')
+              //this.$router.replace('clients')
             }
           });
       },
@@ -139,14 +147,36 @@ export default {
             phoneNumber: this.phoneNumber,
             adress: this.adress,
           }
-          firebase.database().ref('clients').update(entry, (error) => {
+          firebase.database().ref('clients/'+ this.id).update(entry, (error) => {
             if (error) {
               alert('Oops. ' + error.message)
             } else {
-              this.$router.replace('clients')
+              this.$router.push('/clients')
             }
           });
       },
+      editClient: function(index, id) {
+          this.dialogEdit = !this.dialogEdit;
+          this.editedCid = index;
+
+          this.name = this.editedCid.name;
+          this.email = this.editedCid.email;
+          this.phoneNumber = this.editedCid.phoneNumber;
+          this.adress = this.editedCid.adress;
+          this.id = id;
+          console.log(this.id)
+      },
+      deleteClient: function(id) {
+          //console.log(id)
+          firebase.database().ref('clients').child(id).remove()
+            .then(function() {
+                //this.$router.replace('clients')
+                console.log("Remove succeeded.")
+            })
+            .catch(function(error) {
+                console.log("Remove failed: " + error.message)
+            });
+      }
   },
   mounted: function() {
       firebase.auth().onAuthStateChanged(user => {
@@ -157,15 +187,26 @@ export default {
           // No user is signed in.
           this.user = false
         }
-        firebase.database().ref("clients").orderByChild("user").equalTo(this.user.uid).on("value", snapshot => {
+        firebase.database().ref("clients/").orderByChild("user").equalTo(this.user.uid).on("value", snapshot => {
             if (snapshot.val() !== null){
-                console.log(snapshot.val());
-                this.tablo = Object.values(snapshot.val())
+                //console.log(snapshot.key)
+                //this.tablo = Object.entries(snapshot.val())
+                for(let [clientId, client] of Object.entries(snapshot.val())) {
+                    this.tablo.push({
+                        "id": clientId,
+                        "adress": client.adress,
+                        "email": client.email,
+                        "name": client.name,
+                        "phoneNumber": client.phoneNumber,
+                        "user": client.user
+                    })
+                }
             }
         });
       });
   }
 }
+
 </script>
 
 <style scoped>
