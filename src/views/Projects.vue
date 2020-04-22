@@ -12,29 +12,16 @@
                         <v-icon>mdi-plus</v-icon>
                     </v-btn>
                 </div>
-                <v-simple-table dense>
-                    <thead>
-                        <tr>
-                        <th class="text-left">Name</th>
-                        <th class="text-left">Echéance</th>
-                        <th class="text-left">Client</th>
-                        <th class="text-left">Statut</th>
-                        <th class="text-left"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, i) in tablo" :key="i" :lat-lng="item">
-                            <td class="text-left">{{ item.name }}</td>
-                            <td class="text-left">{{ item.echeance }}</td>
-                            <td class="text-left">{{ item.client }}</td>
-                            <td class="text-left">{{ item.statut }}</td>
-                            <td class="text-left">
-                                <v-btn class="ma-4" @click="editProject(item, item.id)">Edit</v-btn>
-                                <v-btn class="ma-4" @click="() => deleteProject(item.id)">Delete</v-btn>
-                            </td>
-                        </tr>
-                    </tbody>
-                </v-simple-table>
+                <v-data-table dense :headers="headers" :items="tablo" item-key="name" class="elevation-1">
+                    <template v-slot:item.actions="{ item }">
+                        <v-icon small class="mr-2" @click="editProject(item, item.id)">
+                            mdi-pencil
+                        </v-icon>
+                        <v-icon small @click="deleteProject(item.id)">
+                            mdi-delete
+                        </v-icon>
+                    </template>
+                </v-data-table>
             </v-card>
             <v-dialog v-model="dialog" width="800px">
                 <v-card>
@@ -65,7 +52,7 @@
                             </v-select>
                             
                             <v-btn class="mr-4" @click="reset">Reset</v-btn>
-                            <v-btn color="primary" :disabled="!valid" class="mr-4" @click="validate">Validate</v-btn>
+                            <v-btn color="primary" :disabled="!valid" class="mr-4" @click="validate" type="submit" @submit.prevent="submit">Validate</v-btn>
                         </v-form>
                     </v-container>
                 </v-card>
@@ -92,13 +79,14 @@
                                 <v-date-picker v-model="echeance" no-title @input="menu = false"></v-date-picker>
                             </v-menu>
 
-                            <v-text-field v-model="client"  label="Client" required></v-text-field>
+                            <v-select v-model="client" :items="tabloClient" :rules="[v => !!v || 'Client is required']" label="Client" required>
+                            </v-select>
                             
                             <v-select v-model="statut" :items="items" :rules="[v => !!v || 'Statut is required']" label="Statut" required>
                             </v-select>
                             
                             <v-btn class="mr-4" @click="reset">Reset</v-btn>
-                            <v-btn color="primary" :disabled="!valid" class="mr-4" @click="update">Update</v-btn>
+                            <v-btn color="primary" :disabled="!valid" class="mr-4" @click="update" type="submit" @submit.prevent="submit">Update</v-btn>
                         </v-form>
                     </v-container>
                 </v-card>
@@ -117,6 +105,13 @@ export default {
     Navigation
   },
   data: () => ({
+        headers: [
+            { text: 'Name', value: 'name',},
+            { text: 'Echeance', value: 'echeance' },
+            { text: 'Statut', value: 'statut' },
+            { text: 'Client', value: 'client' },
+            { text: 'Actions', value: 'actions', sortable: false },
+        ],
         dialog: false,
         dialogEdit: false,
         valid: true,
@@ -185,7 +180,7 @@ export default {
             if (error) {
               alert('Oops. ' + error.message)
             } else {
-              //this.$router.push('/projects')
+              //this.$router.push(location)
             }
           });
       },
@@ -200,15 +195,15 @@ export default {
           this.id = id;
       },
       deleteProject: function(id) {
-          //console.log(id)
-          firebase.database().ref('projects').child(id).remove()
+        if (confirm('Are you sure you want to delete this project ?') ) {
+            firebase.database().ref('projects').child(id).remove()
             .then(function() {
-                //this.$router.replace('projects')
                 console.log("Remove succeeded.")
             })
             .catch(function(error) {
                 console.log("Remove failed: " + error.message)
             });
+        }
       }
   },
   mounted: function() {
@@ -222,8 +217,6 @@ export default {
         }
         firebase.database().ref("projects/").orderByChild("user").equalTo(this.user.uid).on("value", snapshot => {
             if (snapshot.val() !== null){
-                //console.log(snapshot.key)
-                //this.tablo = Object.entries(snapshot.val())
                 for(let [projectId, project] of Object.entries(snapshot.val())) {
                     this.tablo.push({
                         "id": projectId,

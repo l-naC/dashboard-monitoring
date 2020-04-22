@@ -12,29 +12,16 @@
                         <v-icon>mdi-plus</v-icon>
                     </v-btn>
                 </div>
-                <v-simple-table dense>
-                    <thead>
-                        <tr>
-                        <th class="text-left">Name</th>
-                        <th class="text-left">Email</th>
-                        <th class="text-left">Phone number</th>
-                        <th class="text-left">Adress</th>
-                        <th class="text-left"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, i) in tablo" :key="i" :lat-lng="item">
-                            <td class="text-left">{{ item.name }}</td>
-                            <td class="text-left">{{ item.email }}</td>
-                            <td class="text-left">{{ item.phoneNumber }}</td>
-                            <td class="text-left">{{ item.adress }}</td>
-                            <td class="text-left">
-                                <v-btn class="ma-4" @click="editClient(item, item.id)">Edit</v-btn>
-                                <v-btn class="ma-4" @click="() => deleteClient(item.id)">Delete</v-btn>
-                            </td>
-                        </tr>
-                    </tbody>
-                </v-simple-table>
+                <v-data-table dense :headers="headers" :items="tablo" item-key="name" class="elevation-1">
+                    <template v-slot:item.actions="{ item }">
+                        <v-icon small class="mr-2" @click="editClient(item, item.id)">
+                            mdi-pencil
+                        </v-icon>
+                        <v-icon small @click="deleteClient(item.id)">
+                            mdi-delete
+                        </v-icon>
+                    </template>
+                </v-data-table>
             </v-card>
             <v-dialog v-model="dialog" width="800px">
                 <v-card>
@@ -53,7 +40,7 @@
                             <v-text-field v-model="adress" :rules="adressRules" label="Adress" required></v-text-field>
                             
                             <v-btn class="mr-4" @click="reset">Reset</v-btn>
-                            <v-btn color="primary" :disabled="!valid" class="mr-4" @click="validate">Validate</v-btn>
+                            <v-btn color="primary" :disabled="!valid" class="mr-4" @click="validate" type="submit" @submit.prevent="submit">Validate</v-btn>
                         </v-form>
                     </v-container>
                 </v-card>
@@ -74,7 +61,7 @@
                             <v-text-field v-model="adress" :rules="adressRules" label="Adress" required></v-text-field>
                             
                             <v-btn class="mr-4" @click="reset">Reset</v-btn>
-                            <v-btn color="primary" :disabled="!valid" class="mr-4" @click="update">Update</v-btn>
+                            <v-btn color="primary" :disabled="!valid" class="mr-4" @click="update" type="submit" @submit.prevent="submit">Update</v-btn>
                         </v-form>
                     </v-container>
                 </v-card>
@@ -94,6 +81,13 @@ export default {
     Navigation
   },
   data: () => ({
+        headers: [
+            { text: 'Name', value: 'name',},
+            { text: 'Email', value: 'email' },
+            { text: 'Phone number', value: 'phoneNumber' },
+            { text: 'Adress', value: 'adress' },
+            { text: 'Actions', value: 'actions', sortable: false },
+        ],
         dialog: false,
         dialogEdit: false,
         valid: true,
@@ -151,7 +145,7 @@ export default {
             if (error) {
               alert('Oops. ' + error.message)
             } else {
-              this.$router.push('/clients')
+              //this.$router.push('/clients')
             }
           });
       },
@@ -166,17 +160,17 @@ export default {
           this.id = id;
           console.log(this.id)
       },
-      deleteClient: function(id) {
-          //console.log(id)
-          firebase.database().ref('clients').child(id).remove()
+      deleteClient: function (id) {
+        if (confirm('Are you sure you want to delete this client ?') ) {
+            firebase.database().ref('clients').child(id).remove()
             .then(function() {
-                //this.$router.replace('clients')
                 console.log("Remove succeeded.")
             })
             .catch(function(error) {
                 console.log("Remove failed: " + error.message)
             });
-      }
+        }
+      },
   },
   mounted: function() {
       firebase.auth().onAuthStateChanged(user => {
@@ -189,8 +183,6 @@ export default {
         }
         firebase.database().ref("clients/").orderByChild("user").equalTo(this.user.uid).on("value", snapshot => {
             if (snapshot.val() !== null){
-                //console.log(snapshot.key)
-                //this.tablo = Object.entries(snapshot.val())
                 for(let [clientId, client] of Object.entries(snapshot.val())) {
                     this.tablo.push({
                         "id": clientId,

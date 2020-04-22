@@ -27,8 +27,8 @@
         </v-btn>
       </router-link>
       <router-link to="profil">
-        <v-btn icon>
-            <v-icon>mdi-account</v-icon>
+        <v-btn icon @click="logout">
+            <v-icon title="Logout">mdi-logout</v-icon>
         </v-btn>
       </router-link>
     </v-app-bar>
@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import firebase from 'firebase';
+
   export default {
     props: {
       source: String,
@@ -50,6 +52,13 @@
         { icon: 'mdi-content-copy', text: 'Projects', link:'projects' },
       ],
     }),
+    methods: {
+      logout: function() {
+        firebase.auth().signOut().then(() => {
+            this.$router.replace('login')
+        });
+      }
+    }
   }
 </script>
 
