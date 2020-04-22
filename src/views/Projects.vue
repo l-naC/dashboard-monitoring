@@ -21,6 +21,9 @@
                             mdi-delete
                         </v-icon>
                     </template>
+                    <template v-slot:item.statut="{ item }">
+                        <v-chip :color="getColor(item.statut)" dark>{{ item.statut }}</v-chip>
+                    </template>
                 </v-data-table>
             </v-card>
             <v-dialog v-model="dialog" width="800px">
@@ -204,7 +207,14 @@ export default {
                 console.log("Remove failed: " + error.message)
             });
         }
-      }
+      },
+      getColor: function(statut) {
+        if (statut == "À faire") return 'red'
+        else if (statut == "En cours") return 'orange'
+        else if (statut == "En recette") return 'blue'
+        else if (statut == "Livré") return 'purple'
+        else return 'green'
+      },
   },
   mounted: function() {
       firebase.auth().onAuthStateChanged(user => {

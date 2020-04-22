@@ -11,22 +11,11 @@
                     <v-card-title class="align-start px-5 py-0">List of 5 last projects</v-card-title>
                     <v-spacer />
                 </div>
-                <v-simple-table dense>
-                    <thead>
-                        <tr>
-                        <th class="text-left">Name</th>
-                        <th class="text-left">Echéance</th>
-                        <th class="text-left">Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, i) in tabloProject" :key="i" :lat-lng="item">
-                            <td class="text-left">{{ item.name }}</td>
-                            <td class="text-left">{{ item.echeance }}</td>
-                            <td class="text-left">{{ item.statut }}</td>
-                        </tr>
-                    </tbody>
-                </v-simple-table>
+                <v-data-table dense :headers="headers" :items="tabloProject" item-key="name" class="elevation-1">
+                    <template v-slot:item.statut="{ item }">
+                        <v-chip :color="getColor(item.statut)" dark>{{ item.statut }}</v-chip>
+                    </template>
+                </v-data-table>
               </v-card>
             </v-col>
             <v-col >
@@ -72,9 +61,20 @@ export default {
     tabloClient: [],
     tabloProject: [],
     user: false,
+    headers: [
+            { text: 'Name', value: 'name',},
+            { text: 'Echeance', value: 'echeance' },
+            { text: 'Statut', value: 'statut' }
+        ],
   }),
   methods: {
-      
+    getColor: function(statut) {
+      if (statut == "À faire") return 'red'
+      else if (statut == "En cours") return 'orange'
+      else if (statut == "En recette") return 'blue'
+      else if (statut == "Livré") return 'purple'
+      else return 'green'
+    },
   },
   mounted: function() {
       firebase.auth().onAuthStateChanged(user => {
