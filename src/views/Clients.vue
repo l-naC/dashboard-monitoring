@@ -4,7 +4,7 @@
             <v-card class="px-5 py-3 mt-5">
                 <div class="d-flex grow flex-wrap">
                     <v-card class="v-card-material-table px-5 py-5" color="primary" dark>
-                        <v-icon>mdi-clipboard-text</v-icon>
+                        <v-icon>mdi-account-supervisor</v-icon>
                     </v-card>
                     <v-card-title class="align-start px-5 py-0">List of clients</v-card-title>
                     <v-spacer />

@@ -18,7 +18,7 @@
     <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" app color="primary" dark>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-toolbar-title class="ml-0 pl-4">
-        <span class="hidden-sm-and-down">Dashboard Monitoring</span>
+        <router-link to="home" id="router-link-title"><span class="hidden-sm-and-down">Dashboard Monitoring</span></router-link>
       </v-toolbar-title>
       <v-spacer />
       <router-link to="home">
@@ -52,3 +52,10 @@
     }),
   }
 </script>
+
+<style scoped>
+#router-link-title{
+  color: white;
+  text-decoration: none;
+}
+</style>

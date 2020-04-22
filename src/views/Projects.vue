@@ -45,12 +45,24 @@
                         <v-form ref="form" v-model="valid">
 
                             <v-text-field v-model="name" :counter="10" :rules="nameRules" label="Name" required></v-text-field>
+                            <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y max-width="290px" min-width="290px">
+                                <template v-slot:activator="{ on }">
+                                    <v-text-field
+                                    v-model="computedEcheanceFormatted"
+                                    label="Date de l'échéance"
+                                    readonly
+                                    v-on="on"
+                                    required
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker v-model="echeance" no-title @input="menu = false"></v-date-picker>
+                            </v-menu>
 
-                            <v-text-field v-model="echeance" label="Echéance" required></v-text-field>
+                            <v-select v-model="client" :items="tabloClient" :rules="[v => !!v || 'Client is required']" label="Client" required>
+                            </v-select>
 
-                            <v-text-field v-model="client"  label="Client" required></v-text-field>
-                            
-                            <v-text-field v-model="statut"  label="Statut" required></v-text-field>
+                            <v-select v-model="statut" :items="items" :rules="[v => !!v || 'Statut is required']" label="Statut" required>
+                            </v-select>
                             
                             <v-btn class="mr-4" @click="reset">Reset</v-btn>
                             <v-btn color="primary" :disabled="!valid" class="mr-4" @click="validate">Validate</v-btn>
@@ -67,11 +79,23 @@
                         <v-form ref="form" v-model="valid">
                             <v-text-field v-model="name" :counter="10" :rules="nameRules" label="Name" required></v-text-field>
 
-                            <v-text-field v-model="echeance" label="Echéance" required></v-text-field>
+                            <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y max-width="290px" min-width="290px">
+                                <template v-slot:activator="{ on }">
+                                    <v-text-field
+                                    v-model="computedEcheanceFormatted"
+                                    label="Date de l'échéance"
+                                    readonly
+                                    v-on="on"
+                                    required
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker v-model="echeance" no-title @input="menu = false"></v-date-picker>
+                            </v-menu>
 
                             <v-text-field v-model="client"  label="Client" required></v-text-field>
                             
-                            <v-text-field v-model="statut"  label="Statut" required></v-text-field>
+                            <v-select v-model="statut" :items="items" :rules="[v => !!v || 'Statut is required']" label="Statut" required>
+                            </v-select>
                             
                             <v-btn class="mr-4" @click="reset">Reset</v-btn>
                             <v-btn color="primary" :disabled="!valid" class="mr-4" @click="update">Update</v-btn>
@@ -87,7 +111,6 @@
 import Navigation from '@/components/Navigation.vue'
 import firebase from 'firebase';
       
-
 export default {
   name: 'Projects',
   components: {
@@ -98,6 +121,7 @@ export default {
         dialogEdit: false,
         valid: true,
         tablo: [],
+        tabloClient: [],
         name: '',
         id: '',
         nameRules: [
@@ -108,13 +132,33 @@ export default {
         client: '',
         statut: '',
         user: false,
+        items: ['À faire', 'En cours', 'En recette','Livré', 'Terminé'],
+        menu: false,
+        menu2: false,
   }),
+  computed: {
+      computedEcheanceFormatted () {
+        return this.formatDate(this.echeance)
+      },
+  },
   methods: {
+      formatDate (echeance) {
+        if (!echeance) return null
+
+        const [year, month, day] = echeance.split('-')
+        return `${day}/${month}/${year}`
+      },
+      formatEcheance (echeance){
+          if (!echeance) return null
+
+        const [day, month, year] = echeance.split('/')
+        return `${year}-${month}-${day}`
+      },
       validate: function () {
           let entry = {
             name: this.name,
             user: this.user.uid,
-            echeance: this.echeance,
+            echeance: this.formatDate(this.echeance),
             client: this.client,
             statut: this.statut,
           }
@@ -133,7 +177,7 @@ export default {
           let entry = {
             name: this.name,
             user: this.user.uid,
-            echeance: this.echeance,
+            echeance: this.formatDate(this.echeance),
             client: this.client,
             statut: this.statut,
           }
@@ -151,7 +195,7 @@ export default {
 
           this.name = this.editedPid.name;
           this.client = this.editedPid.client;
-          this.echeance = this.editedPid.echeance;
+          this.echeance = this.formatEcheance(this.editedPid.echeance);
           this.statut = this.editedPid.statut;
           this.id = id;
       },
@@ -189,6 +233,13 @@ export default {
                         "statut": project.statut,
                         "user": project.user
                     })
+                }
+            }
+        });
+        firebase.database().ref("clients/").orderByChild("user").equalTo(this.user.uid).limitToLast(5).on("value", snapshot => {
+            if (snapshot.val() !== null){
+                for(let project of Object.values(snapshot.val())) {
+                    this.tabloClient.push(project.name)
                 }
             }
         });
